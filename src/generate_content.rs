@@ -12,24 +12,31 @@ pub fn generate_makefile(args: &Args) -> String {
         .join(" ");
     let target = args.output.clone();
 
+    let needs_math_lib = if sources.contains("math.h") { " -lm" } else { "" };
     format!(
         r#"
-CC = {compiler}
-CFLAGS = {flags}
-SOURCES = {sources}
-OBJECTS = {objects}
-TARGET = {target}
+# Makefile for compiling and running {target}
+
+CC = {compiler}              # The compiler ({compiler})
+CFLAGS = -Wall {flags}        # Compiler flags
+TARGET = {target}             # The output program name
+SRC = {sources}               # The source files
+OBJECTS = {objects}           # The object files
 
 all: $(TARGET)
+{tab}./$(TARGET)
 
 $(TARGET): $(OBJECTS)
-\t$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
+{tab}$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET){needs_math_lib}
 
 %.o: %.c
-\t$(CC) $(CFLAGS) -c $< -o $@
+{tab}$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-\trm -f $(OBJECTS) $(TARGET)
-    "#
+{tab}rm -f $(OBJECTS) $(TARGET)
+
+.PHONY: all clean
+    "#,
+    tab = "\t",
     )
 }
